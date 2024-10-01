@@ -1,32 +1,37 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState(null);
 
+  //handleSubmit é a função que será executada quando o usuário clicar no botão de login
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event.preventDefault(); /* event.preventDefault() é usado para impedir que a página seja recarregada quando 
+    o formulário for enviado. No HTML, o comportamento padrão de um formulário é recarregar a página, mas com 
+    React, geralmente queremos evitar isso.*/
 
+    /*Usamos o axios.post() para enviar os dados de email e senha para o servidor.*/
     try {
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, senha }),
+      const response = await axios.post('http://localhost:4000/login', {
+        email,
+        senha,
+      }, { 
+
+        /*withCredentials: true, é uma configuração que permite que os cookies sejam incluídos na requisição. 
+        Isso é importante se o login utiliza sessões ou algum tipo de autenticação baseada em cookies.*/
+        withCredentials: true,
+
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);  // Armazenar o token no localStorage
-        onLogin();  // Atualizar o estado de autenticação no componente pai (App.js)
-      } else {
-        setError(data.message || 'Erro ao fazer login');
-      }
-    } catch (error) {
-      setError('Erro ao conectar com o servidor');
+      // Você não precisa mais armazenar o token no localStorage
+      //Atualiza o estado de autenticação no componente pai
+      onLogin();
+       
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Erro ao fazer login';
+      setError(errorMessage);
     }
   };
 
